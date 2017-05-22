@@ -10,8 +10,8 @@
  * Change activity:
  *   $BC,EPT     4/21/2014 - initial release
  **********************************************************************/
-#include "../stdio.h"
-#include "../stdlib.h"
+#include "stdio.h"
+#include "stdlib.h"
 
 #define LOG printf
 

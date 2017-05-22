@@ -12,8 +12,8 @@
  *   
  ***********************************************************************************/
 
-#include "../stdio.h"
-#include "../stdlib.h"
+#include "stdio.h"
+#include "stdlib.h"
 
 #define NULL           0
 #define NAN            (0xEFFFFFFF)

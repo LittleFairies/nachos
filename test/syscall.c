@@ -12,7 +12,7 @@
  *               5/8/2014  - TODO: add a VAR to exec a program that will fork child
  *   
  **********************************************************************/
-#include "../stdio.h"
+#include "stdio.h"
 
 #define NULL        0
 #define NUMVARS     9
@@ -61,15 +61,17 @@ int main(int argc, char *argv[]) {
     if(argc > 1)
         variation = atoi(argv[1]);
 
-    LOG("++ISPRMGR: ARG[1] is %d \n", variation);
+//    LOG("++ISPRMGR: ARG[1] is %d \n", variation);
 
     if (variation) {
         route(variation, dbg_flag);
     }
     else {
         LOG("++ISPRMGR Run all the variations\n");
-        for (i=1; i <= NUMVARS; i++)
-            route(i, dbg_flag);
+        for (i=9; i <= NUMVARS; i++){
+            if (i == 8 || i == 5)	continue;
+	    route(i, dbg_flag);
+	}
     }
 
 
@@ -130,20 +132,20 @@ void route(int variation, char dbg_flag)
             LOG("++ISPRMGR VAR2: runs exec multiple times and checks each child gets unique PID\n");
             executable = "cp.coff";
             _argv[0] = executable;
-            _argv[1] = "cat.coff";
-            _argv[2] = "cat1.coff";
+            _argv[1] = "mv.coff";
+            _argv[2] = "mv1.coff";
             _argc = 3;
 
-            for (i = 0; i <  MAXPROCESS; i++) {
+            for (i = 0; i <  5/*MAXPROCESS*/; i++) {
                 // LOG("before");
                 LOG("++ISPRMGR VAR2: exec %s\n", executable);
                 pid[i] = exec(executable, _argc, _argv);
-                LOG("++ISPRMGR VAR2: Get PID %d after exec cp.coff\n", pid[i]);
+                LOG("++ISPRMGR VAR2: Process %d, Get PID %d after exec cp.coff\n", i, pid[i]);
             
                 for (j = 0; j < i; ++j)  {
                     if (pid[j] == pid[i]) {
                         LOG("++ISPRMGR VAR2: FAILED, pid[%d] equals pid[%d]\n",
-                                    pid[j], pid[i]);
+                                    j, i);
                         exit(-1);
                     }
                 }
@@ -365,7 +367,7 @@ void route(int variation, char dbg_flag)
 
                 LOG("++ISPRMGR VAR9: Issue join to get exit status of child process\n", pid[0]);
                 retval = join(pid[0], &exitstatus);
-                if (retval == 0) {
+                if (retval == 1) {
                     LOG("++ISPRMGR VAR9: join successfully, exit status is %d\n", exitstatus);
                 }
                 else {

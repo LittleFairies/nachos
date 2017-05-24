@@ -7,7 +7,7 @@ import nachos.userprog.*;
 import java.io.EOFException;
 import java.util.*;
 
-/*Final version*/
+/*Last night*/
 
 /**
  * Encapsulates the state of a user process that is not contained in its user
@@ -248,7 +248,7 @@ public class UserProcess {
 	 * memory.
 	 * @return the number of bytes successfully transferred.
 	 */
-	public int writeVirtualMemory(int vaddr, byte[] data, int offset, int length) {
+		public int writeVirtualMemory(int vaddr, byte[] data, int offset, int length) {
 		//CSE120 Proj2 Part2
 		if(data==null || offset<0 || length<0 || offset+length>data.length)
 			return 0;
@@ -547,14 +547,6 @@ public class UserProcess {
 			Lib.debug(dbgProcess, "File name Illegal!");
 			return -1;
 		}
-
-		
-		if (UserKernel.closeFiles.contains(fileName)){
-			Lib.debug(dbgProcess, "Write: The file is unlinked!");
-			return -1;
-		}
-		
-
 		OpenFile newFile = ThreadedKernel.fileSystem.open(fileName, true);
 		if (newFile == null){
 			Lib.debug(dbgProcess, "Cannot create file!");
@@ -564,16 +556,6 @@ public class UserProcess {
 		int descriptor = findEmptyDescriptor();
 		if (descriptor >= 2 && descriptor < MAX_FILE)
 			fileArray[descriptor] = newFile;
-
-		
-		UserKernel.openFilesMutex.P();
-		if (UserKernel.openFiles.containsKey(fileName)){
-			UserKernel.openFiles.put(fileName, UserKernel.openFiles.get(fileName) + 1);
-		}else{
-			UserKernel.openFiles.put(fileName, 1);
-		}
-		UserKernel.openFilesMutex.V();
-		
 		return descriptor;
 	}
 
@@ -590,13 +572,6 @@ public class UserProcess {
 			Lib.debug(dbgProcess, "File name Illegal!");
 			return -1;
 		}
-		
-		if (UserKernel.closeFiles.contains(fileName)){
-			Lib.debug(dbgProcess, "Write: The file is unlinked!");
-			return -1;
-		}
-		
-
 		Lib.debug(dbgProcess, "Open file name: " + fileName);
 		newFile = ThreadedKernel.fileSystem.open(fileName, false);
 		if (newFile == null){
@@ -607,16 +582,6 @@ public class UserProcess {
 		int descriptor = findEmptyDescriptor();
 		if (descriptor >= 2 && descriptor < MAX_FILE)
 			fileArray[descriptor] = newFile;
-
-		
-		UserKernel.openFilesMutex.P();
-		if (UserKernel.openFiles.containsKey(fileName)){
-			UserKernel.openFiles.put(fileName, UserKernel.openFiles.get(fileName) + 1);
-		}else{
-			UserKernel.openFiles.put(fileName, 1);
-		}
-		UserKernel.openFilesMutex.V();
-		
 		return descriptor;
 	}
 
@@ -679,7 +644,6 @@ public class UserProcess {
 		}
 		if (count < 0){
 			Lib.debug(dbgProcess, "Byte count is negative!");
-			return -1;
 		}
 
 		byte[] buffer = new byte[pageSize];
@@ -726,38 +690,10 @@ public class UserProcess {
 			Lib.debug(dbgProcess, "The file to close is out of range or does not exist!");
 			return -1;
 		}
-
-		String fileName = fileArray[fd].getName();
 		fileArray[fd].close();
 		fileArray[fd] = null;
 		fileNum--;
-
-		
-		boolean canDel = false;
-		UserKernel.openFilesMutex.P();
-		if (UserKernel.openFiles.containsKey(fileName))
-			UserKernel.openFiles.put(fileName, UserKernel.openFiles.get(fileName) - 1);
-		if (!UserKernel.openFiles.containsKey(fileName)){
-			UserKernel.openFiles.remove(fileName);
-			canDel = true;
-		}
-		UserKernel.openFilesMutex.V();
-
-		if (canDel){
-			if (ThreadedKernel.fileSystem.remove(fileName)){
-				UserKernel.closeFilesMutex.P();
-				UserKernel.closeFiles.remove(fileName);
-				UserKernel.closeFilesMutex.V();
-				return 0;
-			}else{
-				return -1;
-			}
-		}else{
-			return 0;
-		}
-
-//		return 0;
-
+		return 0;
 	}
 
 	private int handleUnlink(int vaddr){
@@ -766,8 +702,6 @@ public class UserProcess {
 			Lib.debug(dbgProcess, "The file to remove does not exist!");
 			return -1;
 		}
-
-		/*
 		int fd = -1;
 		for (int i = 0; i < MAX_FILE; ++i){
 			if (fileArray[i] != null && fileArray[i].getName().equals(fileName)){
@@ -775,36 +709,14 @@ public class UserProcess {
 				break;
 			}
 		}
+
 		if (fd != -1){
 			handleClose(fd);
 		}
+
 		if (ThreadedKernel.fileSystem.remove(fileName))
 			return 0;
 		return -1;
-		*/
-
-		
-		boolean canClose = false;
-		UserKernel.openFilesMutex.P();
-		if (!UserKernel.openFiles.containsKey(fileName)){
-			canClose = true;
-		}
-		UserKernel.openFilesMutex.V();
-
-		if (canClose){
-			if (ThreadedKernel.fileSystem.remove(fileName)){
-				UserKernel.closeFilesMutex.P();
-				UserKernel.closeFiles.remove(fileName);
-				UserKernel.closeFilesMutex.V();
-				return 0;
-			}else{
-				return -1;
-			}
-		}else{
-			UserKernel.closeFiles.add(fileName);
-			return 0;
-		}
-		
 
 	}
 
@@ -813,7 +725,7 @@ public class UserProcess {
 
 //		Lib.debug(dbgProcess, "Exec: Executable has " + argcnt + " argument.");
 
-		if (argcnt < 0){
+		if (argcnt < 1){
 			Lib.debug(dbgProcess, "Exec Failed: argument is less than 1.");
 			return -1;
 		}
@@ -951,7 +863,6 @@ public class UserProcess {
 				handleClose(i);
 		}
 
-		Lib.debug(dbgProcess, "Exit: Closing files.");
 		for (UserProcess child : childrenProcess.values()){
 //			child.lock.acquire();
 			child.setParent(UserKernel.rootPID, UserKernel.root);
@@ -960,14 +871,10 @@ public class UserProcess {
 		}
 		childrenProcess.clear();
 
-
-		Lib.debug(dbgProcess, "Exit: Unloading section.");
 		unloadSections();
 
-		Lib.debug(dbgProcess, "Exit: Closing coff.");
 		coff.close();
 
-		Lib.debug(dbgProcess, "Exit: Waking up parent.");
 		this.lock.acquire();
 		if (parentProcess != null){
 			parentProcess.lock.acquire();
@@ -985,7 +892,12 @@ public class UserProcess {
 		}
 		UserKernel.pCountMutex.V();
 
-		Lib.debug(dbgProcess, "Exit: Finishing UThread.");
+//		if (this == UserKernel.root){
+		/*
+		if (pCount == 0){
+			Kernel.kernel.terminate();
+		}*/
+
 		UThread.finish();
 
 		Lib.assertNotReached();
@@ -1106,10 +1018,7 @@ public class UserProcess {
 	 * @param cause the user exception that occurred.
 	 */
 	public void handleException(int cause) {
-
 		Processor processor = Machine.processor();
-
-		Lib.debug(dbgProcess, "Exception cause: " + cause);
 
 		switch (cause) {
 		case Processor.exceptionSyscall:

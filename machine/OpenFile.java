@@ -120,6 +120,10 @@ public class OpenFile {
 		return -1;
 	}
 
+	public int hashCode(){
+		return this.name.hashCode();
+	}
+
 	/**
 	 * Write this file starting at the current file pointer and return the
 	 * number of bytes successfully written. Advances the file pointer by this

@@ -41,8 +41,13 @@ public class UserKernel extends ThreadedKernel {
 		pID = 0;
 		pIDMutex = new Semaphore(1);
 
-		pCount = 0;
+		pCount = 1;
 		pCountMutex = new Semaphore(1);
+
+		
+		openFilesMutex = new Semaphore(1);
+		closeFilesMutex = new Semaphore(1);
+		
 	}
 
 	/**
@@ -146,4 +151,12 @@ public class UserKernel extends ThreadedKernel {
 	//References the root process
 	public static UserProcess root = null;
 	public static int rootPID = -1;
+
+
+	public static HashMap<String, Integer> openFiles = new HashMap<String, Integer>();
+	public static Semaphore openFilesMutex;
+
+	public static HashSet<String> closeFiles = new HashSet<String>();
+	public static Semaphore closeFilesMutex;
+
 }

@@ -491,7 +491,8 @@ public class UserProcess {
 			return -1;
 		}
 		if (count < 0){
-			Lib.debug(dbgProcess, "Byte count is negative!");
+			Lib.debug(dbgProcess, "Byte count is negative! " + count);
+			return -1;
 		}
 
 		byte[] buffer = new byte[pageSize];
@@ -526,6 +527,8 @@ public class UserProcess {
 			readCnt += curCnt;
 			vaddr += curCnt;
 		}
+
+		Lib.debug(dbgProcess, "Write: " + readCnt + " bytes have been written.");
 		
 		if (readCnt < count)
 			return -1;
@@ -573,7 +576,7 @@ public class UserProcess {
 
 //		Lib.debug(dbgProcess, "Exec: Executable has " + argcnt + " argument.");
 
-		if (argcnt < 1){
+		if (argcnt < 0){
 			Lib.debug(dbgProcess, "Exec Failed: argument is less than 1.");
 			return -1;
 		}

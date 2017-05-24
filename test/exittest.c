@@ -18,7 +18,7 @@
 void main() {
         
     LOG("++TESTEXIT: invoke exit\n");
-    exit(0);
+    exit(123);
 
     /* Should not get here */
     assert(0);

@@ -304,14 +304,27 @@ public final class Processor {
 		int vpn = pageFromAddress(vaddr);
 		int offset = offsetFromAddress(vaddr);
 
+		System.out.println("Processor: vpn = " + vpn);
+
 		TranslationEntry entry = null;
 
-		// if not using a TLB, then the vpn is an index into the table
+		// if not usi/ng a TLB, then the vpn is an index into the table
 		if (!usingTLB) {
 			if (translations == null || vpn >= translations.length
 					|| translations[vpn] == null || !translations[vpn].valid) {
 				privilege.stats.numPageFaults++;
 				Lib.debug(dbgProcessor, "\t\tpage fault");
+
+				if (translations == null){
+					Lib.debug(dbgProcessor, "\t\ttranslations == null");
+				}else if (vpn >= translations.length){
+					System.out.println("\t\tvpn >= translations.length, vpn = " + vpn + ", translation.length = " + translations.length);
+				}else if (translations[vpn] == null){
+					Lib.debug(dbgProcessor, "\t\ttranslations[vpn] == null");
+				}else{
+					Lib.debug(dbgProcessor, "\t\t!translations[vpn].valid");
+				}
+
 				throw new MipsException(exceptionPageFault, vaddr);
 			}
 

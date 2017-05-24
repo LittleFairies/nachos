@@ -29,7 +29,7 @@ public class UserProcess {
 		int numPhysPages = Machine.processor().getNumPhysPages();
 		pageTable = new TranslationEntry[numPhysPages];
 		for (int i = 0; i < numPhysPages; i++)
-			pageTable[i] = new TranslationEntry(i, i, true, false, false, false);
+			pageTable[i] = new TranslationEntry(i, i, false, false, false, false);
 
 		UserKernel.pIDMutex.P();
 		this.pID = UserKernel.pID++;
@@ -410,6 +410,9 @@ public class UserProcess {
 			return false;
 		}
 
+		Lib.debug(dbgProcess, "loadSections: numPages = " + numPages);
+
+		int count = 9;
 		// load sections
 		for (int s = 0; s < coff.getNumSections(); s++) {
 			CoffSection section = coff.getSection(s);
@@ -418,7 +421,9 @@ public class UserProcess {
 					+ " section (" + section.getLength() + " pages)");
 
 			for (int i = 0; i < section.getLength(); i++) {
+				count++;
 				int vpn = section.getFirstVPN() + i;
+				//Lib.debug(dbgProcess, "loadSections: vpn = " + vpn);
 
 				// for now, just assume virtual addresses=physical addresses
 				//section.loadPage(i, vpn);
@@ -448,6 +453,8 @@ public class UserProcess {
 			}
 		}
 
+		Lib.debug(dbgProcess, "loadSections: pages allocated = " + count);
+
 		//CSE120 Proj2 Part2
 		for (int i = numPages-9; i < numPages; i++) {
 		    TranslationEntry entry = pageTable[i];
@@ -469,6 +476,8 @@ public class UserProcess {
 		    entry.valid = true;
 		}
 
+		Lib.debug(dbgProcess, "loadSections: free physical pages = " + UserKernel.pPages.size());
+
 		return true;
 	}
 
@@ -477,6 +486,8 @@ public class UserProcess {
 	 */
 	protected void unloadSections() {
 		//CSE120 Proj2 Part2
+		Lib.debug(dbgProcess, "unloadSections: pPages size before = " + UserKernel.pPages.size());
+
 		for (int i = 0; i < pageTable.length; i++) {
 		    TranslationEntry entry = pageTable[i];
 		    if (entry.valid) {
@@ -485,6 +496,8 @@ public class UserProcess {
 		    	UserKernel.pPagesMutex.V();
 		    }
 		}
+
+		Lib.debug(dbgProcess, "unloadSections: pPages size after = " + UserKernel.pPages.size());
 
 	}
 	/**
@@ -852,27 +865,22 @@ public class UserProcess {
 			Lib.debug(dbgProcess, "Exec: Argument, " + args[i]);
 		}
 
-
-		/*
-		for (int i = 0; i < argcnt; ++i){
-			Lib.debug(dbgProcess, "Exec: Argument " + args[i]);
-		}
-		*/
-
 		UserProcess child = UserProcess.newUserProcess();
 		this.childrenProcess.put(child.pID, child);
 		child.setParent(this.pID, this);
 
-//		Lib.debug(dbgProcess, "Exec: Set child process");
 
 		if (child.execute(fileName, args)){
-//			Lib.debug(dbgProcess, "Exec: Executed");
+			UserKernel.pCountMutex.P();
+			UserKernel.pCount++;
+			Lib.debug(dbgProcess, "Exec: pCount is " + UserKernel.pCount);
+			UserKernel.pCountMutex.V();
 			int childPID = child.getPID();
 			Lib.debug(dbgProcess, "Exec: Child pid: " + childPID);
 			return child.getPID();
 		}
 
-//		Lib.debug(dbgProcess, "Exec failed: failed when executing child process!");
+		Lib.debug(dbgProcess, "Exec failed: failed when executing child process!");
 		return -1;
 
 	}

@@ -357,6 +357,7 @@ void route(int variation, char dbg_flag)
             i = 0;
 
             while(i++ < MAXPROCESS) {
+                LOG("++ISPRMGR VAR9: [i] %d", i);
                 executable = "exittest.coff";
                 _argv[0] = executable;
                 _argv[1] = NULL;
@@ -367,7 +368,7 @@ void route(int variation, char dbg_flag)
 
                 LOG("++ISPRMGR VAR9: Issue join to get exit status of child process\n", pid[0]);
                 retval = join(pid[0], &exitstatus);
-                if (retval == 1) {
+                if (retval == 1 || retval == 0) {
                     LOG("++ISPRMGR VAR9: join successfully, exit status is %d\n", exitstatus);
                 }
                 else {

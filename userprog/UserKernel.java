@@ -36,6 +36,9 @@ public class UserKernel extends ThreadedKernel {
 		for (int i = 0; i < Machine.processor().getNumPhysPages(); i++){
 			pPages.add(i);
 		}
+
+		Lib.debug('a', "getNumPhysPages = " + Machine.processor().getNumPhysPages());
+
 		pPagesMutex = new Semaphore(1);
 
 		pID = 0;
